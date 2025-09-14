@@ -1,7 +1,13 @@
 import { Stack } from "expo-router";
+import { FavoritesProvider } from "../contexts/FavoritesContext";
+import { CartProvider } from "@/contexts/CartContext";
 
-export default function Layout() {
+export default function RootLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }} />
+    <FavoritesProvider>
+      <CartProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </CartProvider>
+    </FavoritesProvider>
   );
 }

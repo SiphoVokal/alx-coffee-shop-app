@@ -1,100 +1,125 @@
-import React from "react";
+// app/index.tsx
+import React, { useState } from "react";
 import {
   View,
   Text,
+  StyleSheet,
   TextInput,
   TouchableOpacity,
   FlatList,
   Image,
-  StyleSheet,
-  SafeAreaView,
+  Alert,
 } from "react-native";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { coffeeData } from "@/data/coffeeData";
 
-export default function Home({ navigation }: any) {
-  const categories = ["All Coffee", "Machlato", "Latte", "Americano"];
+type CoffeeItemType = {
+  id: string;
+  name: string;
+  image: any;
+  price: number;
+  rating: number;
+  description: string;
+};
 
-  const coffees = [
-    {
-      id: "1",
-      name: "Caffe Mocha",
-      type: "Deep Foam",
-      price: 4.53,
-      rating: 4.8,
-      image: require("@/assets/images/mocha.png"),
-      description:
-        "A cappuccino is an approximately 150 ml (5 oz) beverage, with 25 ml of espresso coffee and 85 ml of fresh milk foam.",
-    },
-    {
-      id: "2",
-      name: "Flat White",
-      type: "Espresso",
-      price: 3.53,
-      rating: 4.7,
-      image: require("@/assets/images/flatWhite.png"),
-      description:
-        "The Flat White combines velvety microfoam with a strong espresso base, creating a smooth yet bold taste.",
-    },
-  ];
 
-  const renderCoffee = ({ item }: any) => (
+
+export default function HomeScreen() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Coffee");
+  const [cart, setCart] = useState<CoffeeItemType[]>([]);
+  const [location, setLocation] = useState("Johannesburg, SA");
+
+  const addToCart = (item: CoffeeItemType) => {
+    setCart([...cart, item]);
+  };
+
+    const handleLocationPress = () => {
+    Alert.alert(
+      "Select Location",
+      "Choose your preferred location",
+      [
+        { text: "Johannesburg, SA", onPress: () => setLocation("Johannesburg, SA") },
+        { text: "Cape Town, SA", onPress: () => setLocation("Cape Town, SA") },
+        { text: "Durban, SA", onPress: () => setLocation("Durban, SA") },
+        { text: "Cancel", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const filteredData = coffeeData.filter(
+    (item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (selectedCategory === "All Coffee" || item.description === selectedCategory)
+  );
+
+  const CoffeeItem = ({ item }: { item: CoffeeItemType }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate("Detail", { item })}
+      onPress={() => router.push({ pathname: "/details", params: { id: item.id } })}
     >
-      <Image source={item.image} style={styles.cardImage} />
-      <Text style={styles.cardTitle}>{item.name}</Text>
-      <Text style={styles.cardSubtitle}>{item.type}</Text>
-      <View style={styles.cardFooter}>
-        <Text style={styles.price}>${item.price}</Text>
-        <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
+      <Image source={item.image } style={styles.cardImage} />
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle}>{item.name}</Text>
+        <Text style={styles.cardPrice}>{item.price}</Text>
+        <View style={styles.cardFooter}>
+          <View style={styles.rating}>
+            <Ionicons name="star" size={14} color="gold" />
+            <Text style={styles.ratingText}>{item.rating}</Text>
+          </View>
+          <TouchableOpacity style={styles.addButton} onPress={() => addToCart(item)}>
+            <AntDesign name="plus" size={16} color="white" />
+          </TouchableOpacity>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Location */}
-      <Text style={styles.locationLabel}>Location</Text>
-      <Text style={styles.location}>Bilzen, Tanjungbalai</Text>
-
-      {/* Search Bar */}
+    <View style={styles.container}>
+       {/* Location Picker */}
+      <TouchableOpacity style={styles.locationPicker} onPress={handleLocationPress}>
+        <Ionicons name="location-outline" size={18} color="#D17842" />
+        <Text style={styles.locationText}>{location}</Text>
+        <Ionicons name="chevron-down" size={16} color="white" />
+      </TouchableOpacity>
+      {/* Search + Filter */}
       <View style={styles.searchRow}>
-        <TextInput
-          placeholder="Search coffee"
-          placeholderTextColor="#999"
-          style={styles.searchInput}
-        />
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#888" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search coffee"
+            placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
         <TouchableOpacity style={styles.filterButton}>
-          <Text style={styles.filterText}>☰</Text>
+          <Ionicons name="filter-outline" size={20} color="white" />
         </TouchableOpacity>
       </View>
-
-      {/* Promo Banner */}
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>Promo</Text>
+      <View style={styles.promoContainer}>
         <Image
-          source={require("@/assets/images/banner.png")}
-          style={styles.bannerImage}
+         source={require("../assets/images/banner.png")} 
+         style={styles.promoImage}
         />
+        <View style={styles.promoTag}>
+        <Text style={styles.promoTagText}>Promo</Text>
+        </View>
       </View>
-
-      {/* Categories */}
-      <View style={styles.categoryRow}>
-        {categories.map((cat, index) => (
+      {/* Category Tabs */}
+      <View style={styles.categoryTabs}>
+        {["All Coffee", "Macchiato", "Espresso", "Latte"].map((cat) => (
           <TouchableOpacity
-            key={index}
-            style={[
-              styles.categoryButton,
-              index === 0 && styles.categoryButtonActive,
-            ]}
+            key={cat}
+            style={[styles.categoryTab, selectedCategory === cat && styles.activeTab]}
+            onPress={() => setSelectedCategory(cat)}
           >
             <Text
-              style={[
-                styles.categoryText,
-                index === 0 && styles.categoryTextActive,
-              ]}
+              style={[styles.categoryText, selectedCategory === cat && styles.activeText]}
             >
               {cat}
             </Text>
@@ -104,150 +129,229 @@ export default function Home({ navigation }: any) {
 
       {/* Coffee List */}
       <FlatList
-        data={coffees}
-        keyExtractor={(item) => item.id}
-        renderItem={renderCoffee}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
-      />
-    </SafeAreaView>
+  data={filteredData}
+  keyExtractor={(item) => item.id.toString()}
+  numColumns={2}
+  contentContainerStyle={styles.coffeeList}
+  renderItem={({ item }) => (
+    <TouchableOpacity
+      style={styles.coffeeCard}
+      onPress={() => router.push({ pathname: "/details", params: { id: item.id } })}
+    >
+      <Image source={item.image} style={styles.coffeeImage} />
+      <Text style={styles.coffeeName}>{item.name}</Text>
+      <Text style={styles.coffeeDesc}>{item.description}</Text>
+      <View style={styles.priceRow}>
+        <Text style={styles.coffeePrice}>{item.price}</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => addToCart(item)}
+        >
+          <Ionicons name="add" size={18} color="white" />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  )}
+/>
+
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push("/")}>
+          <Ionicons name="home-outline" size={24} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => router.push("/favorites")}
+        >
+          <Ionicons name="heart-outline" size={24} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push("/cart")}>
+          <Ionicons name="bag-outline" size={24} color="black" />
+          {cart.length > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{cart.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => router.push("/notifications")}
+        >
+          <Ionicons name="notifications-outline" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
+  container: { flex: 1, color: "black", paddingInline: 26, paddingTop: 86 },
+  locationPicker: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
   },
-  locationLabel: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 10,
+  locationText: {
+    color: "black",
+    marginHorizontal: 6,
+    fontWeight: "600",
   },
-  location: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
+
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
   },
-  searchInput: {
+  searchContainer: {
     flex: 1,
-    backgroundColor: "#f0f0f0",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    fontSize: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1E1E1E",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingBlock: 11
   },
+  promoContainer: {
+  marginVertical: 16,
+  borderRadius: 12,
+  overflow: "hidden",
+  position: "relative",
+},
+
+promoImage: {
+  width: "100%",
+  height: 160,
+  borderRadius: 12,
+},
+
+promoTag: {
+  position: "absolute",
+  top: 10,
+  left: 10,
+  backgroundColor: "#D17842",
+  paddingVertical: 4,
+  paddingHorizontal: 8,
+  borderRadius: 6,
+},
+
+promoTagText: {
+  color: "white",
+  fontWeight: "bold",
+  fontSize: 12,
+},
+
   filterButton: {
     marginLeft: 10,
-    backgroundColor: "#b07c4f",
+    backgroundColor: "#D17842",
+    borderRadius: 8,
     padding: 10,
-    borderRadius: 10,
-  },
-  filterText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  banner: {
-    backgroundColor: "#e6c9a8",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  bannerText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  bannerImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-  },
-  categoryRow: {
-    flexDirection: "row",
-    marginBottom: 16,
-  },
-  categoryButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    marginRight: 10,
-  },
-  categoryButtonActive: {
-    backgroundColor: "#b07c4f",
-    borderColor: "#b07c4f",
-  },
-  categoryText: {
-    fontSize: 14,
-    color: "#444",
-  },
-  categoryTextActive: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  card: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 16,
-    marginHorizontal: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  cardImage: {
-    width: "100%",
-    height: 120,
-    borderRadius: 10,
-    marginBottom: 8,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 6,
-  },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  price: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#b07c4f",
-  },
-  addButton: {
-    backgroundColor: "#b07c4f",
-    width: 28,
-    height: 28,
-    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
   },
-  addButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
+  searchInput: { flex: 1, color: "white", marginLeft: 8 },
+  categoryTabs: { flexDirection: "row", marginBottom: 16 },
+  categoryTab: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: "#1E1E1E",
+    borderRadius: 20,
+    marginRight: 8,
   },
-  columnWrapper: {
-    justifyContent: "space-between",
+  activeTab: { backgroundColor: "#D17842" },
+  categoryText: { color: "white" },
+  activeText: { color: "white", fontWeight: "bold" },
+  list: { paddingBottom: 80 },
+  card: {
+    backgroundColor: "#1E1E1E",
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: "hidden",
   },
+  cardImage: { width: "100%", height: 150 },
+  cardContent: { padding: 10 },
+  cardTitle: { color: "white", fontSize: 16, fontWeight: "bold" },
+  cardPrice: { color: "#D17842", marginVertical: 4 },
+  cardFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  rating: { flexDirection: "row", alignItems: "center" },
+  ratingText: { color: "white", marginLeft: 4 },
+ 
+
+  coffeeList: {
+  paddingHorizontal: 1,
+  paddingBottom: 80, // leave space for nav bar
+},
+
+coffeeCard: {
+  flex: 1,
+  margin: 8,
+  padding: 10,
+},
+
+coffeeImage: {
+  width: "100%",
+  height: 120,
+  borderRadius: 10,
+  marginBottom: 8,
+},
+
+coffeeName: {
+  color: "black",
+  fontWeight: "bold",
+  fontSize: 16,
+},
+
+coffeeDesc: {
+  color: "#aaa",
+  fontSize: 12,
+  marginBottom: 4,
+},
+
+coffeePrice: {
+  color: "#black",
+  fontWeight: "bold",
+  fontSize: 18,
+  marginBottom: 6,
+},
+priceRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  width: "100%",
+  marginTop: 6,
+},
+
+addButton: {
+  backgroundColor: "#D17842",
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+  borderRadius: 8,
+},
+
+  bottomNav: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingInline: 12,
+    paddingBlock:28,
+    marginBottom:12,
+    backgroundColor: "#fff",
+    color: "black",
+    borderRadius: 30,
+    position: "absolute",
+    bottom: -12,
+    left: 1,
+    right: 1,
+  },
+  navItem: { alignItems: "center" },
+  badge: {
+    position: "absolute",
+    top: -5,
+    right: -10,
+    backgroundColor: "red",
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  badgeText: { color: "white", fontSize: 12, fontWeight: "bold" },
 });

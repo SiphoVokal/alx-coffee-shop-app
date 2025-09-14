@@ -1,27 +1,30 @@
 import React from "react";
 import {
-  ImageBackground,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Text,
+  ImageBackground,
+  TouchableOpacity,
+  StyleSheet,
 } from "react-native";
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRouter } from "expo-router";
+import { RootStackParamList } from './types';
 
-export default function Onboarding({ navigation }: any) {
+type WelcomeScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Welcome'
+>
+
+export default function CoffeeWelcomeScreen() {
+  const router = useRouter();
+
   return (
-    <View style={styles.container}>
-      {/* Top 60% image */}
-      <ImageBackground
-        source={require("@/assets/images/hero.png")}
-        style={styles.image}
-        resizeMode="cover"
-      >
-        {/* 10% overlay at the bottom of the image */}
-        <View style={styles.imageOverlay} />
-      </ImageBackground>
-
-      {/* Bottom 40% black section */}
-      <View style={styles.bottomSection}>
+    <ImageBackground
+      source={require("@/assets/images/hero.png")} // replace with your coffee image
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
         <Text style={styles.title}>
           Fall in Love with{"\n"}Coffee in Blissful Delight!
         </Text>
@@ -33,60 +36,55 @@ export default function Onboarding({ navigation }: any) {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => router.replace('/home')}
         >
           <Text style={styles.buttonText}>Get Started</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    backgroundColor: "#000", // fallback
-  },
-  image: {
-    flex: 0.7, // 60% height
-    width: "100%",
     justifyContent: "flex-end",
   },
-  imageOverlay: {
-    height: "4%", // small overlay area
-    width: "100%",
-    backgroundColor: "rgba(0,0,0,0.3)", // 10% black fade
-  },
-  bottomSection: {
-    flex: 0.1, // 40% height
-    backgroundColor: "#000",
+  overlay: {
+    backgroundColor: "rgba(0,0,0,0.6)",
     paddingHorizontal: 24,
     paddingVertical: 32,
-    justifyContent: "center",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   title: {
-    color: "#fff",
-    fontSize: 36,
+    fontSize: 22,
     fontWeight: "bold",
+    color: "#fff",
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   subtitle: {
-    color: "#ccc",
     fontSize: 14,
+    color: "#d1d5db", // light gray
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 20,
   },
   button: {
-    backgroundColor: "#b07c4f",
-    paddingVertical: 14,
-    borderRadius: 10,
+    backgroundColor: "#f97316", // orange
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignSelf: "center",
+    width: 160,
   },
   buttonText: {
     color: "#fff",
+    fontWeight: "600",
     textAlign: "center",
-    fontWeight: "bold",
     fontSize: 16,
   },
 });
+

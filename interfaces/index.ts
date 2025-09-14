@@ -1,19 +1,23 @@
-export interface PropertyListingProps {
-    propertyName: string,
-    rate: number,
-    currency: string,
-    amount: number,
-    location: PropertyLocationProps,
-    favorite: boolean,
-    image?: string
-}
+export interface CoffeeItemType {
+  id: string;
+  name: string;
+  image: any; // because require() returns `any` in React Native
+  price: string; // keep as string for FlatList display
+  rating: number;
+  description: string;
+  size?: "Small" | "Medium" | "Large"; // optional for cart items
+};
 
-export interface PropertyLocationProps {
-    street: string,
-    city: string,
-    country: string
-}
 
-export interface PropertListing {
-    listings: PropertyListingProps []
-}
+export interface Coffee {
+  id: string;
+  name: string;
+  image: string;
+  price: {
+    Small: number;
+    Medium: number;
+    Large: number;
+  };
+  rating: number;
+  description: string;
+};
